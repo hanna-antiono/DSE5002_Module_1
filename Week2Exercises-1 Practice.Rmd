@@ -1,0 +1,141 @@
+---
+title: "Week 2 Exercises"
+author: "Antonio Hanna"
+date: "July 10, 2024"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+Please complete all exercises below. You may use stringr, lubridate, or the forcats library. 
+
+Place this at the top of your script:
+library(stringr)
+library(lubridate)
+library(forcats)
+
+# Exercise 1
+Read the sales_pipe.txt file into an R data frame as sales. 
+
+```{R}
+library(readr)
+df <- read_csv("C:/Users/jalay/Merrimack Data Science/DSE5002/Module 2/sales_pipe2.csv")
+```
+```{R}
+df <- read.delim("C:/Users/jalay/Merrimack Data Science/DSE5002/Module 2/sales_pipe2.csv"
+                     ,stringsAsFactors=FALSE
+                     ,sep = ","
+ )
+```
+
+# Exercise 2
+You can extract a vector of columns names from a data frame using the colnames() function. Notice the first column has some odd characters. Change the column name for the FIRST column in the sales date frame to Row.ID. 
+
+**Note: You will need to assign the first element of colnames to a single character.**
+
+
+```{R}
+names(df)[names(df)==
+  "ï..Row.ID"] <- "Row.ID"
+colnames(df)
+```
+
+# Exercise 3
+Convert both Ship.Date and Order.Date to date vectors within the sales data frame. What is the number of days between the most recent order and the oldest order?
+How many years is that?
+How many weeks?
+
+**Note: Use lubridate**
+
+```{r}
+library(lubridate)
+df$Order.Date <- as.Date(df$Order.Date, format = "%m/%d/%Y")
+df$Ship.Date <- as.Date(df$Ship.Date, format = "%B %d %Y")
+recent_day <- max(df$Order.Date)
+oldest_day <- min(df$Order.Date)
+ans_days <- time_length(interval(oldest_day, recent_day), "days")
+ans_weeks <- time_length(interval(oldest_day, recent_day), "weeks")
+ans_years <- time_length(interval(oldest_day, recent_day), "years")
+
+ans_days
+ans_weeks
+ans_years
+```
+
+# Exercise 4
+What is the average number of days it takes to ship an order?
+
+```{r}
+mean(c(df$Ship.Date)- c(df$Order.Date))
+```
+# Exercise 5
+How many customers have the first name Bill?
+You will need to split the customer name into first and last name segments and then use a regular expression to match the first name bill. Use the length() function to determine the number of customers with the first name Bill in the sales data. 
+
+```{r}
+split_char <-stringr::str_split_fixed(string = df$Customer.Name,pattern= ' ', n=2)
+df$first_name <- paste(split_char[, 1])
+df$last_name <- paste(split_char[, 2])
+sum_1 <- sum(c(df$first_name == "Bill"))
+sum_1
+```
+# Exercise 6
+How many mentions of the word 'table' are there in the Product.Name column? 
+**Note you can do this in one line of code**
+```{R}
+library(stringr)
+```
+
+```{r}
+table_mentions <- sum(str_count(df$Product.Name, fixed("table")))
+```
+
+# Exercise 7
+Create a table of counts for each state in the sales data. The counts table should be ordered alphabetically from A to Z. 
+
+```{r}
+is.factor(df$State) ##### Used factors to save data 
+unique(df$State)
+df$State <- factor(df$State)
+state_abc <- levels(df$State) ### just the states 
+table_counts <- table(df$State)
+table_counts  #### table of counts 
+```
+I could also just do this to but it would eat up a lot of data if not converted to factors
+```{R}
+table_counts_2 <- table(df$State)
+table_counts_2
+```
+
+# Exercise 8
+Create an alphabetically ordered barplot for each sales Category in the State of Texas. 
+
+```{r}
+Texas_category_df <- df[df$State == "Texas",]
+barplot(table(Texas_category_df$Sub.Category))
+```
+Not sure if it was just suppose to be the sales category which has only three categories just making a barplot just in case
+```{R}
+barplot(table(Texas_category_df$Category))
+```
+
+# Exercise 9
+Find the average profit by region.
+**Note: You will need to use the aggregate() function to do this. To understand how the function works type ?aggregate in the console.**
+
+```{r}
+profit_region <- aggregate(df$Profit ~ df$Region, df = df, FUN= mean)
+profit_region
+```
+
+# Exercise 10
+Find the average profit by order year. 
+**Note: You will need to use the aggregate() function to do this. To understand how the function works type ?aggregate in the console.**
+
+```{r}
+df$Year <- format(df$Order.Date, "%Y")
+profit_year <- aggregate(df$Profit ~ df$Year, df = df, FUN = mean)
+profit_year
+```
+
